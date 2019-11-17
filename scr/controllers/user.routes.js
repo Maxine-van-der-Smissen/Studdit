@@ -15,29 +15,26 @@ router.post('/', (req, res) => {
         .catch(error => res.status(400).send({ error: error.message }));
 });
 
-//Edit an existing user
-router.put('/:name', (req, res) => {
-    const userName = req.params.name;
-    const password = req.body.password;
-    const newPassword = req.body.newPassword;
-    const userProps = { username: userName, password: newPassword };
+//Change the password of an existing user
+router.put('/', (req, res) => {
+    const { username, password, newPassword } = req.body;
+    const userProps = { username: username, password: newPassword };
 
-    User.findOneAndUpdate({ username: userName, password: password, active: true }, { password: newPassword }, updateRemoveSettings)
+    User.findOneAndUpdate({ username: username, password: password, active: true }, { password: newPassword }, updateRemoveSettings)
         .then(() => User.findOne(userProps))
         .then(({ username, password, active }) => res.status(200).send({ username }))
-        .catch(error => res.status(401).send({ error: 'Username and password didn\'t match!' }));
+        .catch(() => res.status(401).send({ error: 'Username and password didn\'t match!' }));
 });
 
-//Delete a user
-router.delete('/:username', (req, res) => {
-    const userName = req.params.username;
-    const userPassword = req.body.password;
+//Delete a user by setting the active flag to false
+router.delete('/', (req, res) => {
+    const { username, password } = req.body;
 
-    const userProps = { username: userName, password: userPassword, active: true };
+    const userProps = { username: username, password: password, active: true };
 
     User.findOneAndUpdate(userProps, { active: false }, updateRemoveSettings)
         .then(({ username, password, active }) => res.status(200).send({ username }))
-        .catch(error => res.status(401).send({ error: 'Username and password didn\'t match!' }));
+        .catch(() => res.status(401).send({ error: 'Username and password didn\'t match!' }));
 });
 
 module.exports = router;
