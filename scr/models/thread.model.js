@@ -7,16 +7,16 @@ const VoteSchema = require('./vote.schema');
 const ThreadSchema = new Schema({
     title: {
         type: String,
-        required: true
+        required: [true, 'Title is required!']
     },
     content: {
         type: String,
-        required: true
+        required: [true, 'Content is required!']
     },
     user: {
         type: Schema.Types.ObjectId,
         ref: 'user',
-        required: true
+        required: [true, 'User is required!']
     },
     votes: {
         type: [VoteSchema],

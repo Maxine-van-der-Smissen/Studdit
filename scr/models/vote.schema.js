@@ -5,7 +5,7 @@ const VoteSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
         ref: 'user',
-        required: true
+        required: [true, 'User is required!']
     },
     voteType: {
         type: Boolean,
