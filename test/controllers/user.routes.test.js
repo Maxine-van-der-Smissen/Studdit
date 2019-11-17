@@ -38,19 +38,18 @@ describe('User router', () => {
             });
     });
 
-    // it('POST to /users fails if user already exists', done => {
-    //     User.create({ username: 'test', password: '1234567890' })
-    //         .then(() => {
-    //             requester.post('/users')
-    //                 .send({ username: 'test', password: '1234567890' })
-    //                 .end((error, res) => {
-    //                     expect(res).to.have.status(400);
-    //                     console.log(response.body.error);
-    //                     expect(res.body.error).equals('');
-    //                     done();
-    //                 });
-    //         });
-    // });
+    it('POST to /users fails if user already exists', done => {
+        User.create({ username: 'test', password: '1234567890' })
+            .then(() => {
+                requester.post('/users')
+                    .send({ username: 'test', password: '1234567890' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        expect(res.body.error).equals('user validation failed: username: Error, expected `username` to be unique. Value: `test`');
+                        done();
+                    });
+            });
+    });
 
     it('PUT to /users/:username edits user', done => {
         User.create({ username: 'test', password: '1234567890' })
