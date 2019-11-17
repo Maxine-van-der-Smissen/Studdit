@@ -1,2 +1,2 @@
-# Stubbit
-Stubbit project for NoSQL at Avans
+# Studdit
+Studdit project for NoSQL at Avans
