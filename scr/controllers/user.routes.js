@@ -12,30 +12,32 @@ router.post('/', (req, res) => {
 
     User.create(userProps)
         .then(({ username, password, active }) => res.status(201).send({ username }))
-        .catch(error => res.status(400).send({ error: error.errmsg }));
+        .catch(error => res.status(400).send({ error: error.message }));
 });
 
 //Edit an existing user
 router.put('/:name', (req, res) => {
-    const username = req.params.name;
+    const userName = req.params.name;
     const password = req.body.password;
     const newPassword = req.body.newPassword;
-    const userProps = { username, newPassword };
+    const userProps = { username: userName, password: newPassword };
 
-    User.findOneAndUpdate({ username: username, password: password, active: true }, userProps, updateRemoveSettings)
-        .then(() => User.findById(userId))
+    User.findOneAndUpdate({ username: userName, password: password, active: true }, { password: newPassword }, updateRemoveSettings)
+        .then(() => User.findOne(userProps))
         .then(({ username, password, active }) => res.status(200).send({ username }))
-        .catch(error => res.status(401).send({ error: error }));
+        .catch(error => res.status(401).send({ error: 'Username and password didn\'t match!' }));
 });
 
 //Delete a user
 router.delete('/:username', (req, res) => {
-    const username = req.params.username;
-    const password = req.body;
+    const userName = req.params.username;
+    const userPassword = req.body.password;
 
-    User.findOneAndUpdate({ username: username, password: password, active: true }, { active: false }, updateRemoveSettings)
+    const userProps = { username: userName, password: userPassword, active: true };
+
+    User.findOneAndUpdate(userProps, { active: false }, updateRemoveSettings)
         .then(({ username, password, active }) => res.status(200).send({ username }))
-        .catch(error => res.status(401).send({ error: error }));
+        .catch(error => res.status(401).send({ error: 'Username and password didn\'t match!' }));
 });
 
 module.exports = router;

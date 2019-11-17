@@ -4,11 +4,12 @@ const Schema = mongoose.Schema;
 const UserSchema = new Schema({
     username: {
         type: String,
-        required: true
+        unique: [true, 'A username must be unique' ],
+        required: [true, 'Username is required!']
     },
     password: {
         type: String,
-        required: true
+        required: [true, 'Password is required!']
     },
     active: {
         type: Boolean,
@@ -16,7 +17,7 @@ const UserSchema = new Schema({
     }
 });
 
-UserSchema.index({ username: 1 }, { unique: true });
+UserSchema.index({ username: 1 });
 
 const User = mongoose.model('user', UserSchema);
 
