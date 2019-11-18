@@ -13,9 +13,8 @@ const ThreadSchema = new Schema({
         type: String,
         required: [true, 'Content is required!']
     },
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
+    username: {
+        type: String,
         required: [true, 'User is required!']
     },
     votes: {
@@ -26,6 +25,13 @@ const ThreadSchema = new Schema({
         type: [CommentSchema],
         default: []
     }
+});
+
+ThreadSchema.virtual('user', {
+    ref: 'user',
+    localField: 'username',
+    foreignField: 'username',
+    justOne: true
 });
 
 const Thread = mongoose.model('thread', ThreadSchema);

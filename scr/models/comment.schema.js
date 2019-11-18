@@ -13,15 +13,21 @@ const CommentSchema = new Schema({
         type: String,
         required: [true, 'Content is required!']
     },
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
+    username: {
+        type: String,
         required: [true, 'User is required!']
     },
     votes: {
         type: [VoteSchema],
         default: []
     }
+});
+
+CommentSchema.virtual('user', {
+    ref: 'user',
+    localField: 'username',
+    foreignField: 'username',
+    justOne: true
 });
 
 CommentSchema.add({

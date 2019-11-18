@@ -18,10 +18,10 @@ router.post('/', (req, res) => {
 //Change the password of an existing user
 router.put('/', (req, res) => {
     const { username, password, newPassword } = req.body;
-    const userProps = { username: username, password: newPassword };
+    const userProps = { username: username, password: password, active: true };
 
-    User.findOneAndUpdate({ username: username, password: password, active: true }, { password: newPassword }, updateRemoveSettings)
-        .then(() => User.findOne(userProps))
+    User.findOneAndUpdate(userProps, { password: newPassword }, updateRemoveSettings)
+        .then(() => User.findOne({ username: username, password: newPassword }))
         .then(({ username, password, active }) => res.status(200).send({ username }))
         .catch(() => res.status(401).send({ error: 'Username and password didn\'t match!' }));
 });
