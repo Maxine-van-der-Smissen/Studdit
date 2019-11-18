@@ -70,7 +70,7 @@ describe('User router', () => {
             });
     });
 
-    it('PUT to /users fails if username doesn\'t exist', done => {
+    it('PUT to /users/:username fails if username doesn\'t exist', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
                 requester.put(`${baseRoute}/WrongName`)
@@ -83,7 +83,7 @@ describe('User router', () => {
             });
     });
 
-    it('PUT to /users fails if password is wrong', done => {
+    it('PUT to /users/:username fails if password is wrong', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
                 requester.put(`${baseRoute}/test`)
@@ -96,7 +96,7 @@ describe('User router', () => {
             });
     });
 
-    it('DELETE to /users sets the active flag of a user to false', done => {
+    it('DELETE to /users/:username sets the active flag of a user to false', done => {
         User.create({ username: 'test', password: '1234567890' })
         .then(() => {
             requester.delete(`${baseRoute}/test`)
@@ -109,7 +109,7 @@ describe('User router', () => {
         });
     });
 
-    it('DELETE to /users fails if username doesn\'t exist', done => {
+    it('DELETE to /users/:username fails if username doesn\'t exist', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
                 requester.delete(`${baseRoute}/WrongName`)
@@ -122,7 +122,7 @@ describe('User router', () => {
             });
     });
 
-    it('DELETE to /users fails if password is wrong', done => {
+    it('DELETE to /users/:username fails if password is wrong', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
                 requester.delete(`${baseRoute}/test`)
