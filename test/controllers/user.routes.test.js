@@ -53,11 +53,11 @@ describe('User router', () => {
             });
     });
 
-    it('PUT to /users can change users password', done => {
+    it('PUT to /users/:username can change users password', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
-                requester.put(baseRoute)
-                    .send({ username: 'test', password: '1234567890', newPassword: 'ABCDEF' })
+                requester.put(`${baseRoute}/test`)
+                    .send({ password: '1234567890', newPassword: 'ABCDEF' })
                     .end((error, res) => {
                         expect(res).to.have.status(200);
                         expect(res.body.username).equals('test');
@@ -73,11 +73,11 @@ describe('User router', () => {
     it('PUT to /users fails if username doesn\'t exist', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
-                requester.put(baseRoute)
-                    .send({ username: 'WrongName', password: '1234567890', newPassword: 'ABCDEF' })
+                requester.put(`${baseRoute}/WrongName`)
+                    .send({ password: '1234567890', newPassword: 'ABCDEF' })
                     .end((error, res) => {
-                        expect(res).to.have.status(401);
-                        expect(res.body.error).equals('Username and password didn\'t match!');
+                        expect(res).to.have.status(204);
+                        expect(res.body).to.be.empty;
                         done();
                     });
             });
@@ -86,8 +86,8 @@ describe('User router', () => {
     it('PUT to /users fails if password is wrong', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
-                requester.put(baseRoute)
-                    .send({ username: 'test', password: 'ABCDEF', newPassword: '0123456789' })
+                requester.put(`${baseRoute}/test`)
+                    .send({ password: 'ABCDEF', newPassword: '0123456789' })
                     .end((error, res) => {
                         expect(res).to.have.status(401);
                         expect(res.body.error).equals('Username and password didn\'t match!');
@@ -99,8 +99,8 @@ describe('User router', () => {
     it('DELETE to /users sets the active flag of a user to false', done => {
         User.create({ username: 'test', password: '1234567890' })
         .then(() => {
-            requester.delete(baseRoute)
-            .send({ username: 'test', password: '1234567890' })
+            requester.delete(`${baseRoute}/test`)
+            .send({ password: '1234567890' })
             .end((error, res) => {
                 expect(res).to.have.status(200);
                 expect(res.body).to.haveOwnProperty('username', 'test');
@@ -112,11 +112,11 @@ describe('User router', () => {
     it('DELETE to /users fails if username doesn\'t exist', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
-                requester.delete(baseRoute)
-                    .send({ username:'WrongName', password: '1234567890' })
+                requester.delete(`${baseRoute}/WrongName`)
+                    .send({ password: '1234567890' })
                     .end((error, res) => {
-                        expect(res).to.have.status(401);
-                        expect(res.body.error).equals('Username and password didn\'t match!');
+                        expect(res).to.have.status(204);
+                        expect(res.body).to.be.empty;
                         done();
                     });
             });
@@ -125,8 +125,8 @@ describe('User router', () => {
     it('DELETE to /users fails if password is wrong', done => {
         User.create({ username: 'test', password: '1234567890' })
             .then(() => {
-                requester.delete(baseRoute)
-                    .send({ username: 'test', password: 'ABCDEF' })
+                requester.delete(`${baseRoute}/test`)
+                    .send({ password: 'ABCDEF' })
                     .end((error, res) => {
                         expect(res).to.have.status(401);
                         expect(res.body.error).equals('Username and password didn\'t match!');

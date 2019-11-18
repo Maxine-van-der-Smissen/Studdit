@@ -16,25 +16,51 @@ router.post('/', (req, res) => {
 });
 
 //Change the password of an existing user
-router.put('/', (req, res) => {
-    const { username, password, newPassword } = req.body;
-    const userProps = { username: username, password: password, active: true };
+router.put('/:username', (req, res) => {
+    const username = req.params.username;
+    const { password, newPassword } = req.body;
 
-    User.findOneAndUpdate(userProps, { password: newPassword }, updateRemoveSettings)
-        .then(() => User.findOne({ username: username, password: newPassword }))
-        .then(({ username, password, active }) => res.status(200).send({ username }))
-        .catch(() => res.status(401).send({ error: 'Username and password didn\'t match!' }));
+    User.findOne({ username: username, active: true })
+        .then(user => {
+            if (user !== null) {
+                if (user.password === password) {
+                    user.updateOne({ password: newPassword })
+                        .then(() => User.findOne({ username: username }))
+                        .then(({ username }) => res.status(200).send({ username }));
+                }
+                else {
+                    res.status(401).send({ error: 'Username and password didn\'t match!' });
+                }
+            }
+            else {
+                res.status(204).send();
+            }
+        })
+        .catch(error => res.status(401).send({ error: error }));
 });
 
 //Delete a user by setting the active flag to false
-router.delete('/', (req, res) => {
-    const { username, password } = req.body;
+router.delete('/:username', (req, res) => {
+    const username = req.params.username;
+    const password = req.body.password;
 
-    const userProps = { username: username, password: password, active: true };
-
-    User.findOneAndUpdate(userProps, { active: false }, updateRemoveSettings)
-        .then(({ username, password, active }) => res.status(200).send({ username }))
-        .catch(() => res.status(401).send({ error: 'Username and password didn\'t match!' }));
+    User.findOne({ username: username, active: true })
+        .then(user => {
+            if (user !== null) {
+                if (user.password === password) {
+                    user.updateOne({ active: false })
+                        .then(() => User.findOne({ username: username }))
+                        .then(({ username }) => res.status(200).send({ username }));
+                }
+                else {
+                    res.status(401).send({ error: 'Username and password didn\'t match!' });
+                }
+            }
+            else {
+                res.status(204).send();
+            }
+        })
+        .catch(error => res.status(401).send({ error: error }));
 });
 
 module.exports = router;
