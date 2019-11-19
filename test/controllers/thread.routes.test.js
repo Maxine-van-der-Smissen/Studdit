@@ -79,4 +79,25 @@ describe('Thread router', () => {
     // it('PUT to /threads/:id can change users password', done => {
 
     // });
+
+    //Comment tests
+    it('POST to /comment/;id without username, fails', done => {
+        requester.post(baseRoute + '/comment/test')
+        .send()
+        .end((error, res) => {
+            expect(res).to.have.status(400);
+            expect(res.body).to.haveOwnProperty('error', 'Username required!'); 
+            done();
+        });
+    })
+
+    it('POST to /comment/;id without content, fails', done => {
+        requester.post(baseRoute + '/comment/test')
+        .send({username: "Test"})
+        .end((error, res) => {
+            expect(res).to.have.status(400);
+            expect(res.body).to.haveOwnProperty('error', 'Comment required!'); 
+            done();
+        });
+    })
 });
