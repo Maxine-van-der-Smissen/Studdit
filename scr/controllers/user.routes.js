@@ -25,7 +25,7 @@ router.put('/:username', (req, res) => {
             if (user !== null) {
                 if (user.password === password) {
                     user.updateOne({ password: newPassword })
-                        .then(() => res.status(200).send({ username: user.username }));
+                    .then(() => res.status(200).send({ username: user.username }))
                 }
                 else {
                     res.status(401).send({ error: 'Username and password didn\'t match!' });
@@ -35,7 +35,7 @@ router.put('/:username', (req, res) => {
                 res.status(204).send();
             }
         })
-        .catch(error => res.status(401).send({ error: error }));
+        .catch (error => res.status(401).send({ error: error }));
 });
 
 //Delete a user by setting the active flag to false

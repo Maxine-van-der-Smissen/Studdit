@@ -21,7 +21,7 @@ const CommentSchema = new Schema({
         validate: {
             validator: votes => {
                 const usernames = [];
-                const result = true;
+                let result = true;
                 votes.forEach(vote => {
                     const username = vote.useranme;
                     if (usernames.includes(username)) {
@@ -52,7 +52,7 @@ CommentSchema.add({
         validate: {
             validator: comments => {
                 const ids = [];
-                const result = true;
+                let result = true;
                 comments.forEach(comment => {
                     const id = comment._id.toString();
                     if (ids.includes(id)) {
