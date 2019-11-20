@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 before(done => {
     process.env.NODE_ENV = 'test';
-    mongoose.connect('mongodb://localhost/stubbit_test', { useNewUrlParser: true, useUnifiedTopology: true });
+    mongoose.connect('mongodb://localhost/stubbit_test', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, });
     mongoose.connection
         .once('open', () => done())
         .on('error', err => {

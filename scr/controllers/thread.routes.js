@@ -70,26 +70,44 @@ router.get('/:id', (req, res) => {
 
 //post comment
 router.post('/:id/comment', async function (req, res, callback) {
-    const threadId = new mongoose.Types.ObjectId(req.params.id);
+    const threadId = req.params.id;
     const username = req.body.username;
     const content = req.body.content
 
     const comment = { _id: new mongoose.Types.ObjectId(), content: content, username: username, thread: threadId }
 
-       Comments.create(comment)
-       .then(comment => res.status(201).send(comment))
-       .catch(error => {
-           res.status(400).send({ error: error.message })
-       });
+    Thread.findById(threadId)
+        .then(thread => {
+            if(thread){
+                Comments.create(comment)
+                .then(comment => res.status(201).send(comment))
+                .catch(error => {
+                    res.status(400).send({ error: error.message })
+                });
+            } else {
+                res.status(204).send();
+            }
+        }).catch(error => res.status(401).send({ error: error }));
+
+
+
+
+
 });
 
 router.delete('/comment/:id', async function (req, res){
-    const commentId = new mongoose.Types.ObjectId(req.params.id);
+    const commentId = req.params.id
 
-
-    Thread.findByIdAndDelete(commentId)
-    .then(comment => res.status(200).send(comment))
-    .catch(error => res.status(400).send({ error: error.message }));
+    Comments.findById(commentId)
+        .then(comment => {
+            if(comment){
+                Comments.findByIdAndDelete(commentId)
+                .then(comment => res.status(200).send(comment))
+                .catch(error => res.status(400).send({ error: error }));
+            } else {
+                res.status(204).send();
+            }
+        }).catch(error => res.status(401).send({ error: error }));
 });
 
 
