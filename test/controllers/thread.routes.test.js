@@ -2,6 +2,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const requester = require('../../requester')
+const mongoose = require ('mongoose');
 
 const Thread = require('../../scr/models/thread.model');
 
@@ -82,21 +83,21 @@ describe('Thread router', () => {
 
     //Comment tests
     it('POST to /comment/;id without username, fails', done => {
-        requester.post(baseRoute + '/comment/test')
-        .send()
+        requester.post(baseRoute + '/'+ new mongoose.Types.ObjectId() + '/comment')
+        .send({content: "Test"})
         .end((error, res) => {
             expect(res).to.have.status(400);
-            expect(res.body).to.haveOwnProperty('error', 'Username required!'); 
+            expect(res.body).to.haveOwnProperty('error', 'comment validation failed: username: User is required!'); 
             done();
         });
     })
 
     it('POST to /comment/;id without content, fails', done => {
-        requester.post(baseRoute + '/comment/test')
+        requester.post(baseRoute + '/'+ new mongoose.Types.ObjectId() + '/comment')
         .send({username: "Test"})
         .end((error, res) => {
             expect(res).to.have.status(400);
-            expect(res.body).to.haveOwnProperty('error', 'Comment required!'); 
+            expect(res.body).to.haveOwnProperty('error', 'comment validation failed: content: Content is required!'); 
             done();
         });
     })

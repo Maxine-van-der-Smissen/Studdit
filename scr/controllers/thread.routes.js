@@ -77,6 +77,15 @@ router.post('/:id/comment', async function (req, res, callback) {
        });
 });
 
+router.delete('/comment/:id', async function (req, res){
+    const commentId = new mongoose.Types.ObjectId(req.params.id);
+
+
+    Thread.findByIdAndDelete(commentId)
+    .then(comment => res.status(200).send(comment))
+    .catch(error => res.status(400).send({ error: error }));
+});
+
 
 
 module.exports = router;
