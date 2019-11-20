@@ -3,8 +3,7 @@ const expect = chai.expect;
 
 const mongoose = require('mongoose');
 
-const requester = require('../../requester')
-const mongoose = require ('mongoose');
+const requester = require('../../requester');
 
 const Thread = require('../../scr/models/thread.model');
 
@@ -109,7 +108,7 @@ describe('Thread router', () => {
                 requester.put(`${baseRoute}/${wrongId}`)
                     .send({ content: newContent })
                     .end((error, res) => {
-                        expect(res).to.have.status(400);
+                        expect(res).to.have.status(204);
                         done();
                     });
             })

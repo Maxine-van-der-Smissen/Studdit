@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 
 const Thread = require('../models/thread.model');
 
-const User = require('../models/user.model');
 const Comments = require('../models/comment.model');
 
 //Deprication safe settings for removing or updating using the model
@@ -25,10 +24,17 @@ router.put('/:id', (req, res) => {
     const threadId = req.params.id;
     const newContent = req.body.content;
 
-    Thread.findByIdAndUpdate(threadId, { content: newContent }, updateRemoveSettings)
-        .then(() => Thread.findById(threadId))
-        .then(thread => res.status(200).send(thread))
-        .catch(error => res.status(400).send({ error: error }));
+    Thread.findById(threadId)
+    .then(thread => {
+        if(thread) {
+            thread.content = newContent;
+            thread.save()
+            .then(thread => res.status(200).send(thread));
+        } else {
+            res.status(204).send();
+        }
+    })
+    .catch(error => res.status(400).send({ error: error }));
 });
 
 //Delete the Thread with the given id
