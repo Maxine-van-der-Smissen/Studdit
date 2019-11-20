@@ -22,7 +22,7 @@ const ThreadSchema = new Schema({
         validate: {
             validator: votes => {
                 const usernames = [];
-                const result = true;
+                let result = true;
                 votes.forEach(vote => {
                     const username = vote.useranme;
                     if (usernames.includes(username)) {
