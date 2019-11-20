@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Thread = require('../models/thread.model');
 
 const User = require('../models/user.model');
+const Comments = require('../models/comment.model');
 
 //Deprication safe settings for removing or updating using the model
 const updateRemoveSettings = { useFindAndModify: false };
@@ -62,27 +63,29 @@ router.get('/:id', (req, res) => {
 });
 
 //post comment
-router.post('/comment/:id', async function (req, res, callback) {
-    const threadId = req.params.id;
+router.post('/:id/comment', async function (req, res, callback) {
+    const threadId = new mongoose.Types.ObjectId(req.params.id);
     const username = req.body.username;
-    const content = req.body.content;
+    const content = req.body.content
 
-    if(!username){
-        res.status(400).send({error: "Username required!"})
-        return
-    }
+    const comment = { _id: new mongoose.Types.ObjectId(), content: content, username: username, thread: threadId }
 
-    if(!content || content < 0){
-        res.status(400).send({error: "Comment required!"})
-        return
-    }
-
-    const comment = { _id: new mongoose.Types.ObjectId(), content: content, username: username }
-
-    Thread.findByIdAndUpdate(threadId, { $push: { comments: comment } }, updateRemoveSettings)
-        .then(() => Thread.findById(threadId))
-        .then(thread => res.status(200).send(thread))
-        .catch(error => res.status(400).send({ error: error }));
+       Comments.create(comment)
+       .then(comment => res.status(201).send(comment))
+       .catch(error => {
+           res.status(400).send({ error: error.message })
+       });
 });
+
+router.delete('/comment/:id', async function (req, res){
+    const commentId = new mongoose.Types.ObjectId(req.params.id);
+
+
+    Thread.findByIdAndDelete(commentId)
+    .then(comment => res.status(200).send(comment))
+    .catch(error => res.status(400).send({ error: error }));
+});
+
+
 
 module.exports = router;
