@@ -11,7 +11,7 @@ app.on('databaseConnected', function () {
 });
 
 
-mongoose.connect('mongodb://localhost/stubbit', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb://localhost/stubbit', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, })
     .then(() => {
         console.log('MongoDB connection established');
 
