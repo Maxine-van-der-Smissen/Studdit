@@ -25,8 +25,7 @@ router.put('/:username', (req, res) => {
             if (user !== null) {
                 if (user.password === password) {
                     user.updateOne({ password: newPassword })
-                        .then(() => User.findOne({ username: username }))
-                        .then(({ username }) => res.status(200).send({ username }));
+                        .then(() => res.status(200).send({ username: user.username }));
                 }
                 else {
                     res.status(401).send({ error: 'Username and password didn\'t match!' });
@@ -49,8 +48,7 @@ router.delete('/:username', (req, res) => {
             if (user !== null) {
                 if (user.password === password) {
                     user.updateOne({ active: false })
-                        .then(() => User.findOne({ username: username }))
-                        .then(({ username }) => res.status(200).send({ username }));
+                        .then(() => res.status(200).send({ username: user.username }));
                 }
                 else {
                     res.status(401).send({ error: 'Username and password didn\'t match!' });
