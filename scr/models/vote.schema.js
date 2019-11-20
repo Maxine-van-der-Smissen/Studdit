@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const VoteSchema = new Schema({
     username: {
         type: String,
-        required: [true, 'User is required!']
+        required: [true, 'Username is required!']
     },
     voteType: {
         type: Boolean,
@@ -18,5 +18,7 @@ VoteSchema.virtual('user', {
     foreignField: 'username',
     justOne: true
 });
+
+// VoteSchema.pre('validate')
 
 module.exports = VoteSchema;
