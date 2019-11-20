@@ -22,20 +22,20 @@ describe('User router', () => {
 
     it('POST to /users without username fails', done => {
         requester.post(baseRoute)
-        .send( {password: '1234567890' })
-        .end((error, res) => {
-            expect(res).to.have.status(400);
-            expect(res.body.error).equals('user validation failed: username: Username is required!');
-            done();
-        });
+            .send({ password: '1234567890' })
+            .end((error, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body.error).equals('user validation failed: username: Username is required!');
+                done();
+            });
     });
 
     it('POST to /users without password fails', done => {
         requester.post(baseRoute)
-        .send({ username: 'test' })
-        .end((error, res) => {
-            expect(res).to.have.status(400);
-            expect(res.body.error).equals('user validation failed: password: Password is required!');
+            .send({ username: 'test' })
+            .end((error, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body.error).equals('user validation failed: password: Password is required!');
                 done();
             });
     });
@@ -62,10 +62,10 @@ describe('User router', () => {
                         expect(res).to.have.status(200);
                         expect(res.body.username).equals('test');
                         User.findOne({ username: 'test' })
-                        .then(user => {
-                            expect(user).to.have.property('password', 'ABCDEF');
-                            done();
-                        });
+                            .then(user => {
+                                expect(user).to.have.property('password', 'ABCDEF');
+                                done();
+                            });
                     });
             });
     });
@@ -98,15 +98,20 @@ describe('User router', () => {
 
     it('DELETE to /users/:username sets the active flag of a user to false', done => {
         User.create({ username: 'test', password: '1234567890' })
-        .then(() => {
-            requester.delete(`${baseRoute}/test`)
-            .send({ password: '1234567890' })
-            .end((error, res) => {
-                expect(res).to.have.status(200);
-                expect(res.body).to.haveOwnProperty('username', 'test');
-                done();
+            .then(() => {
+                requester.delete(`${baseRoute}/test`)
+                    .send({ password: '1234567890' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        expect(res.body).to.haveOwnProperty('username', 'test');
+
+                        User.findOne({ username: 'test' })
+                            .then(user => {
+                                expect(user.active).to.be.false;
+                                done();
+                            });
+                    });
             });
-        });
     });
 
     it('DELETE to /users/:username fails if username doesn\'t exist', done => {
@@ -117,7 +122,12 @@ describe('User router', () => {
                     .end((error, res) => {
                         expect(res).to.have.status(204);
                         expect(res.body).to.be.empty;
-                        done();
+
+                        User.findOne({ username: 'test' })
+                            .then(user => {
+                                expect(user.active).to.be.true;
+                                done();
+                            });
                     });
             });
     });
@@ -130,7 +140,12 @@ describe('User router', () => {
                     .end((error, res) => {
                         expect(res).to.have.status(401);
                         expect(res.body.error).equals('Username and password didn\'t match!');
-                        done();
+
+                        User.findOne({ username: 'test' })
+                            .then(user => {
+                                expect(user.active).to.be.true;
+                                done();
+                            });
                     });
             });
     });

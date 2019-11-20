@@ -2,6 +2,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 const requester = require('../../requester');
 
@@ -106,7 +107,7 @@ describe('Thread router', () => {
 
     it('PUT to /threads/:id fails if id doesn\'t exist', done => {
         const newContent = 'This is some other content';
-        const wrongId = new mongoose.Types.ObjectId();
+        const wrongId = new ObjectId();
 
         requester.put(`${baseRoute}/${wrongId}`)
             .send({ content: newContent })
@@ -122,6 +123,27 @@ describe('Thread router', () => {
             .end((error, res) => {
                 expect(res).to.have.status(400);
                 expect(res.body).to.haveOwnProperty('error', 'thread validation failed: content: Content is required!');
+                done();
+            });
+    });
+
+    it('DELETE to /threads/:id deletes the thread', done => {
+        requester.delete(`${baseRoute}/${threadID}`)
+            .end((error, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body).to.haveOwnProperty('_id', threadID.toString());
+                expect(res.body).to.haveOwnProperty('title', 'testThread');
+                expect(res.body).to.haveOwnProperty('content', testContent);
+                expect(res.body).to.haveOwnProperty('username', 'test');
+                done();
+            });
+    });
+
+    it('DELETE to /threads/:id fails if id doesn\'t exist', done => {
+        requester.delete(`${baseRoute}/${new ObjectId()}`)
+            .end((error, res) => {
+                expect(res).to.have.status(204);
+                expect(res.body).to.be.empty;
                 done();
             });
     });

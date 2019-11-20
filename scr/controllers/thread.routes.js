@@ -41,9 +41,16 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
     const threadId = req.params.id;
 
-    Thread.findByIdAndDelete(threadId)
-    .then(thread => res.status(200).send(thread))
-    .catch(error => res.status(400).send({ error: error.message }));
+    Thread.findById(threadId)
+    .then(thread => {
+        if(thread) {
+            return thread.remove()
+            .then(() => res.status(200).send(thread));
+        } else {
+            res.status(204).send();
+        }
+    })
+    .catch(error => res.status(204).send({ error: error.message }));
 });
 
 //Get all Threads without comments

@@ -47,7 +47,8 @@ router.delete('/:username', (req, res) => {
         .then(user => {
             if (user) {
                 if (user.password === password) {
-                    user.updateOne({ active: false })
+                    user.active = false;
+                    user.save()
                         .then(() => res.status(200).send({ username: user.username }));
                 }
                 else {
