@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const CommentSchema = require('./comment.schema');
+const Comment = require('./comment.model');
 const VoteSchema = require('./vote.schema');
 
 const ThreadSchema = new Schema({
@@ -35,27 +35,6 @@ const ThreadSchema = new Schema({
                 return result;
             },
             message: 'Duplicate username id in `votes` field!'
-        },
-        default: []
-    },
-    comments: {
-        type: [CommentSchema],
-        validate: {
-            validator: comments => {
-                const ids = [];
-                const result = true;
-                comments.forEach(comment => {
-                    const id = comment._id.toString();
-                    if (ids.includes(id)) {
-                        result = false;
-                        return;
-                    } else {
-                        ids.push(id);
-                    }
-                });
-                return result;
-            },
-            message: 'Duplicate comment id in `comments` field!'
         },
         default: []
     }
