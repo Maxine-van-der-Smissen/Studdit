@@ -115,6 +115,22 @@ describe('Thread router', () => {
             .catch(console.error);
     });
 
+    it('PUT to /threads/:id fails if content is nog defined', done => {
+        const threadProps = { title: 'testThread', content: testContent, username: 'test' };
+
+        Thread.create(threadProps)
+            .then(thread => {
+                requester.put(`${baseRoute}/${thread._id}`)
+                .send({})
+                .end((error, res) => {
+                    expect(res).to.have.status(400);
+                    expect(res.body).to.haveOwnProperty('error', 'thread validation failed: content: Content is required!');
+                    done();
+                });
+            })
+            .catch(console.error);
+    });
+
     it('Thread with 2 comments with same id fails to save', done => {
         const comment = { _id: new mongoose.Types.ObjectId(), content: 'Test content', username: 'test' };
         const threadProps = { title: 'testThread', content: testContent, username: 'test' };
@@ -138,22 +154,22 @@ describe('Thread router', () => {
 
     //Comment tests
     it('POST to /comment/;id without username, fails', done => {
-        requester.post(baseRoute + '/'+ new mongoose.Types.ObjectId() + '/comment')
-        .send({content: "Test"})
-        .end((error, res) => {
-            expect(res).to.have.status(400);
-            expect(res.body).to.haveOwnProperty('error', 'comment validation failed: username: User is required!'); 
-            done();
-        });
+        requester.post(baseRoute + '/' + new mongoose.Types.ObjectId() + '/comment')
+            .send({ content: "Test" })
+            .end((error, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body).to.haveOwnProperty('error', 'comment validation failed: username: User is required!');
+                done();
+            });
     })
 
     it('POST to /comment/;id without content, fails', done => {
-        requester.post(baseRoute + '/'+ new mongoose.Types.ObjectId() + '/comment')
-        .send({username: "Test"})
-        .end((error, res) => {
-            expect(res).to.have.status(400);
-            expect(res.body).to.haveOwnProperty('error', 'comment validation failed: content: Content is required!'); 
-            done();
-        });
+        requester.post(baseRoute + '/' + new mongoose.Types.ObjectId() + '/comment')
+            .send({ username: "Test" })
+            .end((error, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body).to.haveOwnProperty('error', 'comment validation failed: content: Content is required!');
+                done();
+            });
     })
 });

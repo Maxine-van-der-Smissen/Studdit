@@ -22,9 +22,9 @@ router.put('/:username', (req, res) => {
 
     User.findOne({ username: username, active: true })
         .then(user => {
-            if (user !== null) {
+            if (user) {
                 if (user.password === password) {
-                    user.updateOne({ password: newPassword })
+                    return user.updateOne({ password: newPassword })
                     .then(() => res.status(200).send({ username: user.username }))
                 }
                 else {
@@ -45,7 +45,7 @@ router.delete('/:username', (req, res) => {
 
     User.findOne({ username: username, active: true })
         .then(user => {
-            if (user !== null) {
+            if (user) {
                 if (user.password === password) {
                     user.updateOne({ active: false })
                         .then(() => res.status(200).send({ username: user.username }));

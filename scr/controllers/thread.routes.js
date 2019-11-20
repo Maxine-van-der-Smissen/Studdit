@@ -28,13 +28,13 @@ router.put('/:id', (req, res) => {
     .then(thread => {
         if(thread) {
             thread.content = newContent;
-            thread.save()
+            return thread.save()
             .then(thread => res.status(200).send(thread));
         } else {
             res.status(204).send();
         }
     })
-    .catch(error => res.status(400).send({ error: error }));
+    .catch(error => res.status(400).send({ error: error.message }));
 });
 
 //Delete the Thread with the given id
@@ -43,14 +43,14 @@ router.delete('/:id', (req, res) => {
 
     Thread.findByIdAndDelete(threadId)
     .then(thread => res.status(200).send(thread))
-    .catch(error => res.status(400).send({ error: error }));
+    .catch(error => res.status(400).send({ error: error.message }));
 });
 
 //Get all Threads without comments
 router.get('/', (req, res) => {
     Thread.find({}, { comments: 0 })
     .then(threads => res.status(200).send({ threads: threads, count: threads.length }))
-    .catch(error => res.status(400).send({ error: error}));
+    .catch(error => res.status(400).send({ error: error.message }));
 });
 
 //Get the Thread with the given id with comments
@@ -89,7 +89,7 @@ router.delete('/comment/:id', async function (req, res){
 
     Thread.findByIdAndDelete(commentId)
     .then(comment => res.status(200).send(comment))
-    .catch(error => res.status(400).send({ error: error }));
+    .catch(error => res.status(400).send({ error: error.message }));
 });
 
 
