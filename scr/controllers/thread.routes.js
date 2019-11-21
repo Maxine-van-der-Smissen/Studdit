@@ -64,6 +64,7 @@ router.get('/', (req, res) => {
 //Get the Thread with the given id with comments
 router.get('/:id', (req, res) => {
     const threadId = req.params.id;
+    const sort = req.body.sort;
 
     Thread.findById(threadId)
     .then(thread => res.status(200).send({
