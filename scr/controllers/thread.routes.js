@@ -11,6 +11,7 @@ const updateRemoveSettings = { useFindAndModify: false };
 
 //Create new thread
 router.post('/', (req, res) => {
+    const threadId = req.params.id;
     const threadProps = req.body;
     Thread.create(threadProps)
         .then(thread => res.status(201).send(thread))
@@ -78,7 +79,8 @@ router.get('/:id', (req, res) => {
 
 //post comment
 router.post('/:id/comment', (req, res) => {
-    const threadId = req.params.id;
+
+
 
     const { username, content, parent } = req.body;
 

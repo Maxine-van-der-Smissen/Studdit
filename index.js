@@ -11,7 +11,7 @@ app.on('databaseConnected', function () {
 });
 
 
-mongoose.connect('mongodb://localhost/stubbit', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, })
+mongoose.connect('mongodb+srv://test:test123@cluster0-ptq4v.mongodb.net/test?retryWrites=true&w=1', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, })
     .then(() => {
         console.log('MongoDB connection established');
 
