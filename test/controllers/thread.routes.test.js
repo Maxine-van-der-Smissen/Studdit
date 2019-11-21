@@ -8,6 +8,7 @@ const requester = require('../../requester');
 
 const Thread = require('../../scr/models/thread.model');
 const Comment = require('../../scr/models/comment.model');
+const User = require('../../scr/models/user.model');
 
 const baseRoute = '/threads';
 const testContent = 'This is test content for the test threads';
@@ -20,7 +21,9 @@ describe('Thread router', () => {
         Thread.create(threadProps)
             .then(newThread => {
                 threadID = newThread._id;
-                done();
+                newThread.votes.push({ username: 'test', voteType: true });
+                newThread.save()
+                    .then(() => done());
             });
     });
 
@@ -157,6 +160,126 @@ describe('Thread router', () => {
                 expect(res).to.have.status(204);
                 expect(res.body).to.be.empty;
                 done();
+            });
+    });
+
+    it('POST to /threads/:id/upvote adds an upvote with the specified username', done => {
+        Thread.findById(threadID)
+            .then(thread => {
+                expect(thread.upvotes).to.equal(1);
+                expect(thread.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/${threadID}/upvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        Thread.findById(threadID)
+                            .then(thrd => {
+                                expect(thrd.upvotes).to.equal(2);
+                                expect(thrd.downvotes).to.equal(0);
+                                expect(thrd.votes[1].username).to.equal('other user');
+                                done();
+                            });
+                    });
+            });
+    });
+
+    it('POST to /threads/:id/upvote fails is user doesn\'t exist', done => {
+        Thread.findById(threadID)
+            .then(thread => {
+                expect(thread.upvotes).to.equal(1);
+                expect(thread.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user wrong name', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/${threadID}/upvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        done();
+                    });
+            });
+    });
+
+    it('POST to /threads/:id/upvote fails is thread doesn\'t exist', done => {
+        Thread.findById(threadID)
+            .then(thread => {
+                expect(thread.upvotes).to.equal(1);
+                expect(thread.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/${new ObjectId()}/upvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        done();
+                    });
+            });
+    });
+
+    it('POST to /threads/:id/downvote adds an downvote with the specified username', done => {
+        Thread.findById(threadID)
+            .then(thread => {
+                expect(thread.upvotes).to.equal(1);
+                expect(thread.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user', password: '1234567890' })
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/${threadID}/downvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        Thread.findById(threadID)
+                            .then(thrd => {
+                                expect(thrd.upvotes).to.equal(1);
+                                expect(thrd.downvotes).to.equal(1);
+                                expect(thrd.votes[1].username).to.equal('other user');
+                                done();
+                            });
+                    });
+            });
+    });
+
+    it('POST to /threads/:id/downvote fails is user doesn\'t exist', done => {
+        Thread.findById(threadID)
+            .then(thread => {
+                expect(thread.upvotes).to.equal(1);
+                expect(thread.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user wrong name', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/${threadID}/downvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        done();
+                    });
+            });
+    });
+    
+    it('POST to /threads/:id/downvote fails is thread doesn\'t exist', done => {
+        Thread.findById(threadID)
+            .then(thread => {
+                expect(thread.upvotes).to.equal(1);
+                expect(thread.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user wrong name', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/${new ObjectId()}/downvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        done();
+                    });
             });
     });
 });

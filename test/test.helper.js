@@ -11,9 +11,10 @@ before(done => {
 });
 
 beforeEach(done => {
-    const { users, threads } = mongoose.connection.collections;
+    const { users, threads, comments } = mongoose.connection.collections;
     users.drop()
         .then(() => threads.drop())
+        .then(() => comments.drop())
         .then(() => done())
         .catch(() => done());
 });
