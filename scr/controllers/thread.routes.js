@@ -56,7 +56,7 @@ router.delete('/:id', (req, res) => {
 
 //Get all Threads without comments
 router.get('/', (req, res) => {
-    Thread.find({}, { comments: 0 })
+    Thread.find({}, { __v: 0 })
         .then(threads => res.status(200).send({ threads: threads, count: threads.length }))
         .catch(error => res.status(400).send({ error: error.message }));
 });
@@ -65,15 +65,31 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
     const threadId = req.params.id;
     const sort = req.body.sort;
+    let thread;
+    let comments;
+    let query;
 
     Thread.findById(threadId)
-        .then(thread => res.status(200).send({
-            _id: thread._id,
-            title: thread.title,
-            content: thread.content,
-            username: thread.username,
-            comments: thread.comments
-        }))
+        .then(thrd => {
+            if (thrd) {
+                thread = thrd;
+                if(false){
+
+                }else{
+                query = Comments.find({ thread: threadId }).sort({})
+                    }
+                    query
+                    .then(coms => comments = coms)
+                    .then(() => res.status(200).send({
+                        _id: thread._id,
+                        title: thread.title,
+                        content: thread.content,
+                        username: thread.username,
+                        comments: comments,
+                        votes: thread.votes
+                    }));
+            } else res.status(204).send();
+        })
         .catch(error => res.status(400).send({ error: error }));
 });
 
@@ -89,7 +105,7 @@ router.post('/:id/upvote', (req, res) => {
         })
         .then(() => Thread.findById(threadId))
         .then(thread => {
-            if(thread) {
+            if (thread) {
                 return Thread.findOne({ _id: threadId, "votes.username": username }, { "votes.$": 1 });
             }
             else throw new Error();
@@ -134,7 +150,7 @@ router.post('/:id/downvote', (req, res) => {
         })
         .then(() => Thread.findById(threadId))
         .then(thread => {
-            if(thread) {
+            if (thread) {
                 return Thread.findOne({ _id: threadId, "votes.username": username }, { "votes.$": 1 });
             }
             else throw new Error();
@@ -186,7 +202,7 @@ router.post('/:id/comment', (req, res) => {
                 res.status(204).send();
             }
         })
-        .catch(error => res.status(401).send({ error: error.message }));
+        .catch(error => res.status(400).send({ error: error.message }));
 });
 
 router.delete('/comment/:id', async function (req, res) {
@@ -202,7 +218,98 @@ router.delete('/comment/:id', async function (req, res) {
                 res.status(204).send();
             }
         })
-        .catch(error => res.status(401).send({ error: error.message }));
+        .catch(error => res.status(400).send({ error: error.message }));
+});
+
+router.post('/comment/:id/upvote', (req, res) => {
+    const commentId = req.params.id;
+    const username = req.body.username;
+
+    User.findOne({ username: username })
+        .then(user => {
+            if (!user) {
+                throw new Error();
+            } else {
+                return Comments.findById(commentId);
+            }
+        })
+        .then(comment => {
+            if (comment) {
+                return Comments.findOne({ _id: commentId, "votes.username": username }, { "votes.$": 1 });
+            }
+            else throw new Error();
+        })
+        .then(comment => {
+            if (comment) {
+                comment.votes[0].voteType = true;
+                return comment.save()
+                    .then(comment => {
+                        delete comment.votes;
+                        res.status(200).send(comment);
+                    });
+            } else {
+                Comments.findById(commentId)
+                    .then(comment => {
+                        if (comment) {
+                            comment.votes.push({ username: username, voteType: true });
+                            return comment.save()
+                                .then(comment => {
+                                    delete comment.votes;
+                                    res.status(200).send(comment);
+                                });
+                        } else {
+                            cont = false;
+                            return res.status(204).send();
+                        }
+                    });
+            }
+        })
+        .catch(error => res.status(400).send({ error: error.message }));
+});
+
+router.post('/comment/:id/downvote', (req, res) => {
+    const commentId = req.params.id;
+    const username = req.body.username;
+
+    User.findOne({ username: username })
+        .then(user => {
+            if (!user) {
+                throw new Error();
+            }
+        })
+        .then(() => Comments.findById(commentId))
+        .then(comment => {
+            if (comment) {
+                return Comments.findOne({ _id: commentId, "votes.username": username }, { "votes.$": 1 });
+            }
+            else throw new Error();
+        })
+        .then(comment => {
+            if (comment) {
+                comment.votes[0].voteType = false;
+                return comment.save()
+                    .then(comment => {
+                        delete comment.votes;
+                        res.status(200).send(comment);
+                    });
+            } else {
+                Comments.findById(commentId)
+                    .then(comment => {
+                        if (comment) {
+                            comment.votes.push({ username: username, voteType: false });
+                            return comment.save()
+                                .then(comment => {
+                                    delete comment.votes;
+                                    res.status(200).send(comment);
+                                });
+                        } else {
+                            cont = false;
+                            return res.status(204).send();
+                        }
+                    });
+            }
+        })
+        .catch(error => res.status(400).send({ error: error.message }));
 });
 
 module.exports = router;

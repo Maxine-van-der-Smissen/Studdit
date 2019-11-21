@@ -22,9 +22,6 @@ describe('Thread router', () => {
             .then(newThread => {
                 threadID = newThread._id;
                 newThread.votes.push({ username: 'test', voteType: true });
-                newThread.save()
-                    .then(() => done());
-            });
     });
 
     it('POST to /threads creates a new thread', done => {
@@ -64,7 +61,6 @@ describe('Thread router', () => {
             });
     });
 
-    it('POST to /threads without title fails', done => {
         const threadProps = {
             title: 'testThread',
             username: 'test'
@@ -79,7 +75,6 @@ describe('Thread router', () => {
             });
     });
 
-    it('POST to /threads without title fails', done => {
         const threadProps = {
             title: 'testThread',
             content: testContent
@@ -264,7 +259,6 @@ describe('Thread router', () => {
                     });
             });
     });
-    
     it('POST to /threads/:id/downvote fails is thread doesn\'t exist', done => {
         Thread.findById(threadID)
             .then(thread => {
@@ -300,8 +294,6 @@ describe('Thread router for comments', () => {
             })
             .then(comment => {
                 commentID = comment._id;
-                done();
-            });
     });
 
     it('POST to /comment/:id can create a comment with a thread as parent', done => {

@@ -24,20 +24,15 @@ const CommentSchema = new Schema({
     },
     votes: {
         type: [VoteSchema],
-        validate: {
             validator: votes => {
                 const usernames = [];
-                let result = true;
                 votes.forEach(vote => {
-                    const username = vote.useranme;
                     if (usernames.includes(username)) {
-                        result = false;
                         return;
                     } else {
                         usernames.push(username);
                     }
                 });
-                return result;
             },
             message: 'Duplicate username id in `votes` field!'
         },
@@ -64,7 +59,6 @@ CommentSchema.virtual('upvotes').get(function() {
 CommentSchema.virtual('downvotes').get(function() {
     let downvotes = 0;
     this.votes.forEach(vote => {
-        if(vote.voteType) downvotes++;
     });
 
     return downvotes;
