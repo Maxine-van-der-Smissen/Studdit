@@ -9,6 +9,28 @@ const User = require('../../scr/models/user.model');
 //Deprication safe settings for removing or updating using the model
 const updateRemoveSettings = { useFindAndModify: false };
 
+//compare function for upvotes
+function compare( a, b ) {
+    if ( a.upvotes < b.upvotes ){
+      return 1;
+    }
+    if ( a.upvotes > b.upvotes ){
+      return -1;
+    }
+    return 0;
+  }
+
+  //compare function for difference between up and down votes
+  function compareDifference( a, b ) {
+    if ( a.amountVotes < b.amountVotes ){
+      return 1;
+    }
+    if ( a.amountVotes > b.amountVotes ){
+      return -1;
+    }
+    return 0;
+  }
+
 //Create new thread
 router.post('/', (req, res) => {
     const threadProps = req.body;
@@ -56,9 +78,26 @@ router.delete('/:id', (req, res) => {
 
 //Get all Threads without comments
 router.get('/', (req, res) => {
+    const sort = req.body.sort;
+    if(sort == 'upvotes'){
+        Thread.find({}, { __v: 0 })
+        .then(threads => {
+            console.log(threads[0].upvotes)
+            res.status(200).send({ threads: threads.sort(compare), count: threads.length 
+            })})
+        .catch(error => res.status(400).send({ error: error.message }));
+    } else if (sort == 'votes') {
+        Thread.find({}, { __v: 0 })
+        .then(threads => {
+            console.log(threads[0].upvotes)
+            res.status(200).send({ threads: threads.sort(compareDifference), count: threads.length 
+            })})
+        .catch(error => res.status(400).send({ error: error.message }));
+    } else{
     Thread.find({}, { __v: 0 })
         .then(threads => res.status(200).send({ threads: threads, count: threads.length }))
         .catch(error => res.status(400).send({ error: error.message }));
+    }
 });
 
 //Get the Thread with the given id with comments
@@ -66,12 +105,13 @@ router.get('/:id', (req, res) => {
     const threadId = req.params.id;
     let thread;
     let comments;
+    let query;
 
     Thread.findById(threadId)
         .then(thrd => {
             if (thrd) {
                 thread = thrd;
-                Comments.find({ thread: threadId })
+            Comments.find({ thread: threadId }).sort({})
                     .then(coms => comments = coms)
                     .then(() => res.status(200).send({
                         _id: thread._id,
