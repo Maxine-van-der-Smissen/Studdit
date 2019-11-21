@@ -52,6 +52,24 @@ CommentSchema.virtual('user', {
     justOne: true
 });
 
+CommentSchema.virtual('upvotes').get(function() {
+    let upvotes = 0;
+    this.votes.forEach(vote => {
+        if(vote.voteType) upvotes++;
+    });
+
+    return upvotes;
+});
+
+CommentSchema.virtual('downvotes').get(function() {
+    let downvotes = 0;
+    this.votes.forEach(vote => {
+        if(vote.voteType) downvotes++;
+    });
+
+    return downvotes;
+});
+
 const Comments = mongoose.model('comment', CommentSchema);
 
 module.exports = Comments;
