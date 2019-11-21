@@ -185,7 +185,7 @@ router.post('/:id/comment', (req, res) => {
                 res.status(204).send();
             }
         })
-        .catch(error => res.status(401).send({ error: error.message }));
+        .catch(error => res.status(400).send({ error: error.message }));
 });
 
 router.delete('/comment/:id', async function (req, res) {
@@ -201,7 +201,98 @@ router.delete('/comment/:id', async function (req, res) {
                 res.status(204).send();
             }
         })
-        .catch(error => res.status(401).send({ error: error.message }));
+        .catch(error => res.status(400).send({ error: error.message }));
+});
+
+router.post('/comment/:id/upvote', (req, res) => {
+    const commentId = req.params.id;
+    const username = req.body.username;
+
+    User.findOne({ username: username })
+        .then(user => {
+            if (!user) {
+                throw new Error();
+            } else {
+                return Comments.findById(commentId);
+            }
+        })
+        .then(comment => {
+            if(comment) {
+                return Comments.findOne({ _id: commentId, "votes.username": username }, { "votes.$": 1 });
+            }
+            else throw new Error();
+        })
+        .then(comment => {
+            if (comment) {
+                comment.votes[0].voteType = true;
+                return comment.save()
+                    .then(comment => {
+                        delete comment.votes;
+                        res.status(200).send(comment);
+                    });
+            } else {
+                Comments.findById(commentId)
+                    .then(comment => {
+                        if (comment) {
+                            comment.votes.push({ username: username, voteType: true });
+                            return comment.save()
+                                .then(comment => {
+                                    delete comment.votes;
+                                    res.status(200).send(comment);
+                                });
+                        } else {
+                            cont = false;
+                            return res.status(204).send();
+                        }
+                    });
+            }
+        })
+        .catch(error => res.status(400).send({ error: error.message }));
+});
+
+router.post('/comment/:id/downvote', (req, res) => {
+    const commentId = req.params.id;
+    const username = req.body.username;
+
+    User.findOne({ username: username })
+        .then(user => {
+            if (!user) {
+                throw new Error();
+            }
+        })
+        .then(() => Comments.findById(commentId))
+        .then(comment => {
+            if(comment) {
+                return Comments.findOne({ _id: commentId, "votes.username": username }, { "votes.$": 1 });
+            }
+            else throw new Error();
+        })
+        .then(comment => {
+            if (comment) {
+                comment.votes[0].voteType = false;
+                return comment.save()
+                    .then(comment => {
+                        delete comment.votes;
+                        res.status(200).send(comment);
+                    });
+            } else {
+                Comments.findById(commentId)
+                    .then(comment => {
+                        if (comment) {
+                            comment.votes.push({ username: username, voteType: false });
+                            return comment.save()
+                                .then(comment => {
+                                    delete comment.votes;
+                                    res.status(200).send(comment);
+                                });
+                        } else {
+                            cont = false;
+                            return res.status(204).send();
+                        }
+                    });
+            }
+        })
+        .catch(error => res.status(400).send({ error: error.message }));
 });
 
 module.exports = router;

@@ -22,9 +22,9 @@ describe('Thread router', () => {
             .then(newThread => {
                 threadID = newThread._id;
                 newThread.votes.push({ username: 'test', voteType: true });
-                newThread.save()
-                    .then(() => done());
-            });
+                return newThread.save();
+            })
+            .then(() => done());
     });
 
     it('POST to /threads creates a new thread', done => {
@@ -264,7 +264,7 @@ describe('Thread router', () => {
                     });
             });
     });
-    
+
     it('POST to /threads/:id/downvote fails is thread doesn\'t exist', done => {
         Thread.findById(threadID)
             .then(thread => {
@@ -300,8 +300,11 @@ describe('Thread router for comments', () => {
             })
             .then(comment => {
                 commentID = comment._id;
-                done();
-            });
+                comment.votes.push({ username: 'test', voteType: true });
+                
+                return comment.save();
+            })
+            .then(() => done());
     });
 
     it('POST to /comment/:id can create a comment with a thread as parent', done => {
@@ -360,6 +363,156 @@ describe('Thread router for comments', () => {
                 expect(res).to.have.status(400);
                 expect(res.body).to.haveOwnProperty('error', 'comment validation failed: content: Content is required!');
                 done();
+            });
+    });
+
+    it('DELETE to /comment/:id should delete the comment', done => {
+        Comment.findById(commentID)
+        .then(comment => {
+            expect(comment).to.not.be.null;
+            
+            requester.delete(`${baseRoute}/comment/${commentID}`)
+            .end((error, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body).to.haveOwnProperty('content', 'Test');
+                expect(res.body).to.haveOwnProperty('username', 'test');
+                expect(res.body).to.haveOwnProperty('thread', threadID.toString());
+                expect(res.body).to.haveOwnProperty('parent', threadID.toString());
+                done();
+            });
+        })
+    });
+
+    it('DELETE to /comment/:id should fail if id doesn\'t exist', done => {
+        Comment.findById(commentID)
+        .then(comment => {
+            expect(comment).to.not.be.null;
+            
+            requester.delete(`${baseRoute}/comment/${new ObjectId()}`)
+            .end((error, res) => {
+                expect(res).to.have.status(204);
+                done();
+            });
+        })
+    });
+
+    it('POST to /comment/:id/upvote adds an upvote with the specified username', done => {
+        Comment.findById(commentID)
+            .then(comment => {
+                expect(comment.upvotes).to.equal(1);
+                expect(comment.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/comment/${commentID}/upvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        Comment.findById(commentID)
+                            .then(com => {
+                                expect(com.upvotes).to.equal(2);
+                                expect(com.downvotes).to.equal(0);
+                                expect(com.votes[1].username).to.equal('other user');
+                                done();
+                            });
+                    });
+            })
+    });
+
+    it('POST to /comment/:id/upvote fails is user doesn\'t exist', done => {
+        Comment.findById(commentID)
+            .then(comment => {
+                expect(comment.upvotes).to.equal(1);
+                expect(comment.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user wrong name', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/comment/${commentID}/upvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        done();
+                    });
+            });
+    });
+
+    it('POST to /comment/:id/upvote fails is thread doesn\'t exist', done => {
+        Comment.findById(commentID)
+            .then(comment => {
+                expect(comment.upvotes).to.equal(1);
+                expect(comment.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/comment/${new ObjectId()}/upvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        done();
+                    });
+            });
+    });
+
+    it('POST to /comment/:id/downvote adds an downvote with the specified username', done => {
+        Comment.findById(commentID)
+            .then(comment => {
+                expect(comment.upvotes).to.equal(1);
+                expect(comment.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user', password: '1234567890' })
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/comment/${commentID}/downvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        Comment.findById(commentID)
+                            .then(com => {
+                                expect(com.upvotes).to.equal(1);
+                                expect(com.downvotes).to.equal(1);
+                                expect(com.votes[1].username).to.equal('other user');
+                                done();
+                            });
+                    });
+            });
+    });
+
+    it('POST to /comment/:id/downvote fails is user doesn\'t exist', done => {
+        Comment.findById(commentID)
+            .then(comment => {
+                expect(comment.upvotes).to.equal(1);
+                expect(comment.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user wrong name', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/comment/${commentID}/downvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        done();
+                    });
+            });
+    });
+
+    it('POST to /comment/:id/downvote fails is thread doesn\'t exist', done => {
+        Comment.findById(commentID)
+            .then(comment => {
+                expect(comment.upvotes).to.equal(1);
+                expect(comment.downvotes).to.equal(0);
+
+                return User.create({ username: 'other user wrong name', password: '1234567890' });
+            })
+            .then(() => {
+                requester.post(`${baseRoute}/comment/${new ObjectId()}/downvote`)
+                    .send({ username: 'other user' })
+                    .end((error, res) => {
+                        expect(res).to.have.status(400);
+                        done();
+                    });
             });
     });
 });
