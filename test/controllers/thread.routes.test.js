@@ -64,7 +64,7 @@ describe('Thread router', () => {
             });
     });
 
-    it('POST to /threads without title fails', done => {
+    it('POST to /threads without content fails', done => {
         const threadProps = {
             title: 'testThread',
             username: 'test'
@@ -79,7 +79,7 @@ describe('Thread router', () => {
             });
     });
 
-    it('POST to /threads without title fails', done => {
+    it('POST to /threads without user fails', done => {
         const threadProps = {
             title: 'testThread',
             content: testContent
@@ -161,6 +161,83 @@ describe('Thread router', () => {
                 expect(res.body).to.be.empty;
                 done();
             });
+    });
+
+    it('GET to /threads returns threads without comments and with all required properties', done => {
+        let thread;
+        Thread.collection.drop()
+            .then(() => {
+                return Thread.create({ title: 'testThread2', content: testContent, username: 'test' });
+            })
+            .then(() => {
+                return Thread.create({ title: 'testThread2', content: testContent, username: 'test' });
+            })
+            .then(() => {
+                return Thread.create({ title: 'testThread2', content: testContent, username: 'test' });
+            })
+            .then(thrd => {
+                thread = thrd;
+                return Comment.create({ content: "Test content", username: 'test', thread: thread._id, parent: thread._id });
+            })
+            .then(() => {
+                requester.get(`${baseRoute}`)
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        expect(res.body).to.have.property('threads').and.to.have.lengthOf(3);
+                        expect(res.body.threads[0]).to.haveOwnProperty('title', 'testThread2');
+                        expect(res.body.threads[0]).to.haveOwnProperty('content', testContent);
+                        expect(res.body.threads[0]).to.haveOwnProperty('username', 'test');
+                        expect(res.body.threads[0]).to.haveOwnProperty('votes').and.to.be.empty;
+                        expect(res.body).to.haveOwnProperty('count', 3);
+                        done();
+                    });
+            })
+    });
+
+    it('GET to /threads returns no threads if there are none', done => {
+        Thread.collection.drop()
+            .then(() => {
+                requester.get(`${baseRoute}`)
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        expect(res.body).to.haveOwnProperty('threads').and.to.be.empty;
+                        expect(res.body).to.haveOwnProperty('count', 0);
+                        done();
+                    });
+            })
+    });
+
+    it('GET to /threads/:id returns the thread with its properties and comments', done => {
+        Comment.create({ username: 'test', content: 'Test', thread: threadID, parent: threadID })
+        .then(comment => Comment.create({ username: 'test', content: 'Test', thread: threadID, parent: comment._id }))
+            .then(() => {
+                requester.get(`${baseRoute}/${threadID}`)
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        expect(res.body).to.haveOwnProperty('_id', threadID.toString());
+                        expect(res.body).to.haveOwnProperty('title', 'testThread');
+                        expect(res.body).to.haveOwnProperty('content', testContent);
+                        expect(res.body).to.haveOwnProperty('username', 'test');
+
+                        expect(res.body).to.haveOwnProperty('comments').and.to.have.lengthOf(2);
+                        expect(res.body.comments[0]).to.haveOwnProperty('username', 'test');
+                        expect(res.body.comments[0]).to.haveOwnProperty('content', 'Test');
+                        expect(res.body.comments[0]).to.haveOwnProperty('thread', threadID.toString());
+
+                        expect(res.body).to.haveOwnProperty('votes').and.to.have.lengthOf(1);
+                        expect(res.body.votes[0]).to.haveOwnProperty('username', 'test');
+                        expect(res.body.votes[0]).to.haveOwnProperty('voteType', true);
+                        done();
+                    });
+            });
+    });
+
+    it('GET to /threads/:id fails if id doesn\'t exist', done => {
+        requester.get(`${baseRoute}/${new ObjectId()}`)
+        .end((error, res) => {
+            expect(res).to.have.status(204);
+            done();
+        });
     });
 
     it('POST to /threads/:id/upvote adds an upvote with the specified username', done => {
@@ -301,7 +378,7 @@ describe('Thread router for comments', () => {
             .then(comment => {
                 commentID = comment._id;
                 comment.votes.push({ username: 'test', voteType: true });
-                
+
                 return comment.save();
             })
             .then(() => done());
@@ -368,32 +445,32 @@ describe('Thread router for comments', () => {
 
     it('DELETE to /comment/:id should delete the comment', done => {
         Comment.findById(commentID)
-        .then(comment => {
-            expect(comment).to.not.be.null;
-            
-            requester.delete(`${baseRoute}/comment/${commentID}`)
-            .end((error, res) => {
-                expect(res).to.have.status(200);
-                expect(res.body).to.haveOwnProperty('content', 'Test');
-                expect(res.body).to.haveOwnProperty('username', 'test');
-                expect(res.body).to.haveOwnProperty('thread', threadID.toString());
-                expect(res.body).to.haveOwnProperty('parent', threadID.toString());
-                done();
-            });
-        })
+            .then(comment => {
+                expect(comment).to.not.be.null;
+
+                requester.delete(`${baseRoute}/comment/${commentID}`)
+                    .end((error, res) => {
+                        expect(res).to.have.status(200);
+                        expect(res.body).to.haveOwnProperty('content', 'Test');
+                        expect(res.body).to.haveOwnProperty('username', 'test');
+                        expect(res.body).to.haveOwnProperty('thread', threadID.toString());
+                        expect(res.body).to.haveOwnProperty('parent', threadID.toString());
+                        done();
+                    });
+            })
     });
 
     it('DELETE to /comment/:id should fail if id doesn\'t exist', done => {
         Comment.findById(commentID)
-        .then(comment => {
-            expect(comment).to.not.be.null;
-            
-            requester.delete(`${baseRoute}/comment/${new ObjectId()}`)
-            .end((error, res) => {
-                expect(res).to.have.status(204);
-                done();
-            });
-        })
+            .then(comment => {
+                expect(comment).to.not.be.null;
+
+                requester.delete(`${baseRoute}/comment/${new ObjectId()}`)
+                    .end((error, res) => {
+                        expect(res).to.have.status(204);
+                        done();
+                    });
+            })
     });
 
     it('POST to /comment/:id/upvote adds an upvote with the specified username', done => {

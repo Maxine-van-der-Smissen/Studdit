@@ -56,7 +56,7 @@ router.delete('/:id', (req, res) => {
 
 //Get all Threads without comments
 router.get('/', (req, res) => {
-    Thread.find({}, { comments: 0 })
+    Thread.find({}, { __v: 0 })
         .then(threads => res.status(200).send({ threads: threads, count: threads.length }))
         .catch(error => res.status(400).send({ error: error.message }));
 });
@@ -64,15 +64,25 @@ router.get('/', (req, res) => {
 //Get the Thread with the given id with comments
 router.get('/:id', (req, res) => {
     const threadId = req.params.id;
+    let thread;
+    let comments;
 
     Thread.findById(threadId)
-        .then(thread => res.status(200).send({
-            _id: thread._id,
-            title: thread.title,
-            content: thread.content,
-            username: thread.username,
-            comments: thread.comments
-        }))
+        .then(thrd => {
+            if (thrd) {
+                thread = thrd;
+                Comments.find({ thread: threadId })
+                    .then(coms => comments = coms)
+                    .then(() => res.status(200).send({
+                        _id: thread._id,
+                        title: thread.title,
+                        content: thread.content,
+                        username: thread.username,
+                        comments: comments,
+                        votes: thread.votes
+                    }));
+            } else res.status(204).send();
+        })
         .catch(error => res.status(400).send({ error: error }));
 });
 
@@ -88,7 +98,7 @@ router.post('/:id/upvote', (req, res) => {
         })
         .then(() => Thread.findById(threadId))
         .then(thread => {
-            if(thread) {
+            if (thread) {
                 return Thread.findOne({ _id: threadId, "votes.username": username }, { "votes.$": 1 });
             }
             else throw new Error();
@@ -133,7 +143,7 @@ router.post('/:id/downvote', (req, res) => {
         })
         .then(() => Thread.findById(threadId))
         .then(thread => {
-            if(thread) {
+            if (thread) {
                 return Thread.findOne({ _id: threadId, "votes.username": username }, { "votes.$": 1 });
             }
             else throw new Error();
@@ -217,7 +227,7 @@ router.post('/comment/:id/upvote', (req, res) => {
             }
         })
         .then(comment => {
-            if(comment) {
+            if (comment) {
                 return Comments.findOne({ _id: commentId, "votes.username": username }, { "votes.$": 1 });
             }
             else throw new Error();
@@ -262,7 +272,7 @@ router.post('/comment/:id/downvote', (req, res) => {
         })
         .then(() => Comments.findById(commentId))
         .then(comment => {
-            if(comment) {
+            if (comment) {
                 return Comments.findOne({ _id: commentId, "votes.username": username }, { "votes.$": 1 });
             }
             else throw new Error();
