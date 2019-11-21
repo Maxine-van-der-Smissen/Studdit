@@ -56,14 +56,6 @@ router.delete('/:id', (req, res) => {
 
 //Get all Threads without comments
 router.get('/', (req, res) => {
-    const sort = req.body.sort;
-
-    if(sort === undefined){
-        console.log("hoi")
-    } else {
-        switch()
-    }
-
     Thread.find({}, { comments: 0 })
         .then(threads => res.status(200).send({ threads: threads, count: threads.length }))
         .catch(error => res.status(400).send({ error: error.message }));

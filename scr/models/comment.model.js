@@ -70,6 +70,19 @@ CommentSchema.virtual('downvotes').get(function() {
     return downvotes;
 });
 
+CommentSchema.virtual('amountVotes').get(function() {
+    let votes = 0;
+    this.votes.forEach(vote => {
+        if(vote.voteType){
+            votes++
+        }else{
+            votes--;
+    }});
+
+    return votes;
+});
+
+
 const Comments = mongoose.model('comment', CommentSchema);
 
 module.exports = Comments;
