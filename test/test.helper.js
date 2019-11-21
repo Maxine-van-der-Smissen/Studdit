@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 before(done => {
     process.env.NODE_ENV = 'test';
-    mongoose.connect('mongodb://localhost/stubbit_test', { useNewUrlParser: true, useUnifiedTopology: true });
+    mongoose.connect('mongodb+srv://test:test123@cluster0-ptq4v.mongodb.net/test?retryWrites=true&w=1', {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
+
     mongoose.connection
         .once('open', () => done())
         .on('error', err => {
@@ -11,9 +12,10 @@ before(done => {
 });
 
 beforeEach(done => {
-    const { users, threads } = mongoose.connection.collections;
+    const { users, threads, comments } = mongoose.connection.collections;
     users.drop()
         .then(() => threads.drop())
+        .then(() => comments.drop())
         .then(() => done())
         .catch(() => done());
 });

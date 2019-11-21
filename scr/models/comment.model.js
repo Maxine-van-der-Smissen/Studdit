@@ -1,14 +1,9 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const Comment = require('./comment.model');
 const VoteSchema = require('./vote.schema');
 
-const ThreadSchema = new Schema({
-    title: {
-        type: String,
-        required: [true, 'Title is required!']
-    },
+const CommentSchema = new Schema({
     content: {
         type: String,
         required: [true, 'Content is required!']
@@ -17,9 +12,19 @@ const ThreadSchema = new Schema({
         type: String,
         required: [true, 'User is required!']
     },
+    thread: {
+        type: Schema.Types.ObjectId,
+        ref: 'thread',
+        required: [true, 'Thread is required!']
+    },
+    parent: {
+        type: Schema.Types.ObjectId,
+        ref: 'comment, thread',
+        required: [true, 'Parent is required!']
+    },
     votes: {
         type: [VoteSchema],
-        validate: {
+        alidate: {
             validator: votes => {
                 const usernames = [];
                 let valid = true;
@@ -40,14 +45,14 @@ const ThreadSchema = new Schema({
     }
 });
 
-ThreadSchema.virtual('user', {
+CommentSchema.virtual('user', {
     ref: 'user',
     localField: 'username',
     foreignField: 'username',
     justOne: true
 });
 
-ThreadSchema.virtual('upvotes').get(function() {
+CommentSchema.virtual('upvotes').get(function() {
     let upvotes = 0;
     this.votes.forEach(vote => {
         if(vote.voteType) upvotes++;
@@ -56,7 +61,7 @@ ThreadSchema.virtual('upvotes').get(function() {
     return upvotes;
 });
 
-ThreadSchema.virtual('downvotes').get(function() {
+CommentSchema.virtual('downvotes').get(function() {
     let downvotes = 0;
     this.votes.forEach(vote => {
         if(!vote.voteType) downvotes++;
@@ -65,7 +70,7 @@ ThreadSchema.virtual('downvotes').get(function() {
     return downvotes;
 });
 
-ThreadSchema.virtual('amountVotes').get(function() {
+CommentSchema.virtual('amountVotes').get(function() {
     let votes = 0;
     this.votes.forEach(vote => {
         if(vote.voteType){
@@ -77,6 +82,7 @@ ThreadSchema.virtual('amountVotes').get(function() {
     return votes;
 });
 
-const Thread = mongoose.model('thread', ThreadSchema);
 
-module.exports = Thread;
+const Comments = mongoose.model('comment', CommentSchema);
+
+module.exports = Comments;
